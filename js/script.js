@@ -1,3 +1,5 @@
+//Immediately start running the code
+start();
 /**
  * Entry point of the code
  */
@@ -5,7 +7,7 @@ async function start(){
     //Start the search process;
     let results = await getSearchData();
     //Now set the html of the body to the JSON that was fetched
-    document.getElementsByTagName("pre")[0].innerHTML = JSON.stringify(results);
+    document.getElementsByTagName("body")[0].innerHTML = JSON.stringify(results);
 }
 
 
