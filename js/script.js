@@ -13,7 +13,7 @@ async function start() {
     let results = searchData.results;
     if (GET.output.toLowerCase() === 'json') {
         //Now set the html of the body to the JSON that was fetched
-        document.getElementsByTagName("body")[0].innerHTML = JSON.stringify(searchData);
+        document.getElementsByTagName("body")[0].innerHTML = "<pre>" + JSON.stringify(searchData) + "</pre>";
     } else {
         //The html we will generate
         var html = "";
