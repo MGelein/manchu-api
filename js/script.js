@@ -1,13 +1,66 @@
+/**
+ * Holds the GET variables
+ */
+var GET = { output: 'html' };
 //Immediately start running the code
 start();
 /**
  * Entry point of the code
  */
-async function start(){
+async function start() {
     //Start the search process;
-    let results = await getSearchData();
-    //Now set the html of the body to the JSON that was fetched
-    document.getElementsByTagName("body")[0].innerHTML = JSON.stringify(results);
+    let searchData = await getSearchData();
+    let results = searchData.results;
+    if (GET.output.toLowerCase() === 'json') {
+        //Now set the html of the body to the JSON that was fetched
+        document.getElementsByTagName("body")[0].innerHTML = JSON.stringify(searchData);
+    } else {
+        //The html we will generate
+        var html = "";
+        results.forEach(function (result) {
+            html += htmlResult(result);
+        });
+        //Set the generated html as content of the list div
+        document.getElementsByTagName("body")[0].innerHTML = html;
+    }
+}
+
+/**
+ * Generates the HTML for a result
+ * @param {Object} result 
+ */
+function htmlResult(result) {
+    //Generate the lemma header and open the div
+    var html = "<div class='result'><h3>" + result.lemma + "</h3>";
+    result.entries.forEach(function(entry){
+        html += htmlEntry(entry);
+    });
+    //Close the html div and return
+    return html + "</div>";
+
+}
+
+/**
+ * Generates the HTML code for one single entry
+ * @param {Object} entry 
+ */
+function htmlEntry(entry){
+    var html = "<div class='entry' id='" + entry.id + "'>";
+    html += "<span class='dictDef'>Dict: " + entry.dictionary + "</span>";
+    html += "<ul class='meaningList'>";
+    entry.definitions.forEach(function(definition){
+        html += "<li><span class='langDef'>" + definition.language + "</span>:&nbsp;";
+        html += definition.definition;
+        html += "</li>";
+    });
+    html += "</ul></div>";
+    //Now add the highlights to the generated text
+    let toReplace = entry.highlight.replace(/<\/?em>/g, '');
+    let index = html.indexOf(toReplace);
+    //Now reconstruct the string with the em in the middle
+    html = html.substring(0, index) + entry.highlight + html.substring(index + toReplace.length);
+
+    return html;
 }
 
 
@@ -37,7 +90,7 @@ async function getSearchData() {
     //First check if the keyword is valid
     var keyword = getKeyword();
     //Abort if keyword is undefined or not of a proper length
-    if(!keyword || keyword.length < 1) return;
+    if (!keyword || keyword.length < 1) return;
     //Now set up the request method
     let response = await fetch('https://manc.hu/api/lexicon/search', {
         method: 'post',
@@ -52,7 +105,6 @@ async function getSearchData() {
     let result = await response.json();
     return result;
 }
-
 
 /**
  * Returns the keyword that is appended
@@ -73,6 +125,8 @@ function getKeyword() {
         if (pair.split("=")[0].toLowerCase() == "keyword") {
             returnValue = pair.split("=")[1];
         }
+        let parts = pair.split('=');
+        GET[parts[0]] = parts[1];
     });
     //Now return the value whether it contains a string or not
     return returnValue;
