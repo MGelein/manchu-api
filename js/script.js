@@ -2,6 +2,7 @@
  * Holds the GET variables
  */
 var GET = { output: 'html' };
+parseURLVars();
 //Immediately start running the code
 start();
 /**
@@ -88,29 +89,32 @@ async function getAccessToken() {
  */
 async function getSearchData() {
     //First check if the keyword is valid
-    var keyword = getKeyword();
+    var keyword = GET.keyword;
     //Abort if keyword is undefined or not of a proper length
     if (!keyword || keyword.length < 1) return;
     //Now set up the request method
     let response = await fetch('https://manc.hu/api/lexicon/search', {
         method: 'post',
         mode: "cors",
+        cache: "no-cache",
+        headers: {
+            "Content-Type": "application/json; charset=utf-8",
+        },
         headers: {
             "Authorization": "Bearer " + (await getAccessToken()),
             "Content-Type": "application/json",
         },
         body: '{"query": "' + keyword + '","definition": true,"from": 0,"size": 100}'
-    })
+    });
     //Now wait for the response
     let result = await response.json();
     return result;
 }
 
 /**
- * Returns the keyword that is appended
- * as GET variable from the url
+ * Parses the URL variables and stores them in an object
  */
-function getKeyword() {
+function parseURLVars() {
     //First grab the url
     let url = window.location.href;
     //Check if we have a GET value in there, if not return empty
@@ -126,8 +130,6 @@ function getKeyword() {
             returnValue = pair.split("=")[1];
         }
         let parts = pair.split('=');
-        GET[parts[0]] = parts[1];
+        GET[decodeURI(parts[0])] = decodeURI(parts[1]);
     });
-    //Now return the value whether it contains a string or not
-    return returnValue;
 }
